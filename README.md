@@ -9,7 +9,7 @@ The firmware only uses
 See below for some information about the Blue Pill board and its mounted MCU.
 
 * [Blue Pill board](https://stm32-base.org/boards/STM32F103C8T6-Blue-Pill.html)
-* MCU: [STM32F103C8](https://www.st.com/en/microcontrollers-microprocessors/stm32f103c8.html).
+* [STM32F103C8](https://www.st.com/en/microcontrollers-microprocessors/stm32f103c8.html)
 * External crystal at 8.000 MHz
 * User LED at PC13
 
@@ -61,3 +61,10 @@ debugger/programmer is used. ST link can also be used to debug using, for
 example the SWD interface. The Open On-Chip Debugger software 
 (http://openocd.org/) can be used for this purpose. A board configuration 
 file can be found in the `openocd` folder.
+
+## Configuration
+
+### Memory
+
+No heap memory is used. The linker file is updated to reflect this.
+
