@@ -32,34 +32,34 @@ The core parts in order to build and start the software on the target
 hardware are listed below.
 
 *   Linker file: `stm32f103c8.ld`. This file is specific for compiler toolchain
-    (gcc). The file is generated from STM32CubeMX. An alternative is to use 
-    the file in the ST specific CMSIS files 
+    (gcc). The file is generated from STM32CubeMX. An alternative is to use
+    the file in the ST specific CMSIS files
     (`cmsis-st/Source/Templates/gcc/linker`) but there seems not to be a 
     file that matches the exact MCU.
-    
+
 *   Startup file: `./cmsis-st/Source/Templates/gcc/startup_stm32f102xb.s`.
-    This file is part of the ST specific CMSIS files. It is specific for 
+    This file is part of the ST specific CMSIS files. It is specific for
     the device (i.e., the specific MCU) as well as the compiler tool chain. The
-    code in this file will be executed after a reset (`Reset_Handler`). The 
+    code in this file will be executed after a reset (`Reset_Handler`). The
     code will do things as initialize the RAM memory and call the `SystemInit`
     function (see below). When the initialization is done, the `main` function
     will be called.
-    
-*   System device file: `cmsis-st/Source/Templates/system_stm32f1xx.c`. This 
-    file is used to setup the microcontroller. The function is specified by 
+
+*   System device file: `cmsis-st/Source/Templates/system_stm32f1xx.c`. This
+    file is used to setup the microcontroller. The function is specified by
     CMSIS and implemented by the device vendor.
-    
+
 *   `main` function. This is the application start that will be called by the
-    startup code (asm) when the system has been initialized. The function is 
+    startup code (asm) when the system has been initialized. The function is
     located in the `src/main.c` file.
-    
+
 ## Flash to target
 
 To flash the firmware to the MCU, an
 [ST Link](https://www.st.com/en/development-tools/st-link-v2.html) in-circuit
-debugger/programmer is used. ST link can also be used to debug using, for 
-example the SWD interface. The Open On-Chip Debugger software 
-(http://openocd.org/) can be used for this purpose. A board configuration 
+debugger/programmer is used. ST link can also be used to debug using, for
+example the SWD interface. The Open On-Chip Debugger software
+(http://openocd.org/) can be used for this purpose. A board configuration
 file can be found in the `openocd` folder.
 
 ## Configuration
@@ -67,4 +67,51 @@ file can be found in the `openocd` folder.
 ### Memory
 
 No heap memory is used. The linker file is updated to reflect this.
+
+### GPIO
+
+The User LED mounted on the board and connected to PC13 is enabled as General
+Purpose output push-pull. Note that the LED is active low.
+
+### System clocks
+
+From the data sheet [RM0008] section 7:
+
+_Several prescalers allow the configuration of the AHB frequency, the high
+speed APB (APB2) and the low speed APB (APB1) domains. The maximum frequency
+of  the AHB and the APB2 domains is 72 MHz. The maximum allowed frequency of the
+APB1 domain is 36 MHz. The SDIO AHB interface is clocked with a fixed frequency
+equal to HCLK/2_
+
+To use the external crystal (MHz) the configuration below is used. This will
+result in a 72MHz system clock: HSE 8MHz crystal with PLL x 9 (8MHz x 9 = 72
+MHz).
+
+From the data sheet [RM0008] section 3.3.3:
+
+_Reading the Flash memory
+Flash memory instructions and data access are performed through the AHB bus.
+... Flash access control register (FLASH_ACR) ... LATENCY Two wait states, if
+48 MHz < SYSCLK <= 72 MHz_
+
+Step 1
+* Configure FLASH_ACR = Flash latency two wait states
+* Enable HSE (High Speed External clock signal) from crystal. Wait for the
+  HSERDY flag to be set indicating that the clock has stabilized.
+
+Step 2
+* AHB Prescaler = /1 -- Maximum allowed frequency is 36MHz
+* PLLMul = x9
+* Set PLL Source Mux to HSE
+* Configure PLL and then enable. Wait for the PLL to be ready (PLLRDY)
+
+Step 3
+* Set System Clock Mux source to PLL
+
+
+## References
+
+[RM0008](https://www.st.com/resource/en/reference_manual/cd00171190-stm32f101xx-stm32f102xx-stm32f103xx-stm32f105xx-and-stm32f107xx-advanced-arm-based-32-bit-mcus-stmicroelectronics.pdf)
+: Reference manual STM32F101xx, STM32F102xx, STM32F103xx, STM32F105xx and
+STM32F107xx advanced Arm®-based 32-bit MCUs
 
