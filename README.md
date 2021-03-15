@@ -53,6 +53,29 @@ hardware are listed below.
     startup code (asm) when the system has been initialized. The function is
     located in the `src/main.c` file.
 
+## Build
+
+The software is built using a cross compiling toolchain for ARM and the build
+is conducted using [CMake](https://cmake.org/). The cross compilation toolchain
+for ARM can found
+[here](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm).
+
+To use the ARM toolchain from CMake, use the `cmake/arm-none-eabi.cmake`
+toolchain file (`CMAKE_TOOLCHAIN_FILE`). The toolchain file will search for
+the needed programs (using `find_program`). Make sure that the PATH environment
+variable includes the needed paths or specify the directory with
+`CMAKE_PREFIX_PATH`.
+
+### Example - build on Linux
+
+Follow the steps below to build the on Linux. Assuming that the cross
+compilation toolchain is installed in `/opt/gcc-arm`.
+
+    mkdir build
+    cd build
+    cmake -DCMAKE_PREFIX_PATH=/opt/gcc-arm -DCMAKE_TOOLCHAIN_FILE=../cmake/arm-none-eabi.cmake ..
+    make
+
 ## Flash to target
 
 To flash the firmware to the MCU, an
