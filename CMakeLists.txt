@@ -16,5 +16,5 @@ cc_add_executable(ledblink
         )
 
 cc_target_include_directories(ledblink PRIVATE include)
-cc_target_include_directories(ledblink PRIVATE cmsis-st/Include)
-cc_target_include_directories(ledblink PRIVATE cmsis_5/CMSIS/Core/Include)
+cc_target_include_directories(ledblink PRIVATE cmsis/cmsis-st/Include)
+cc_target_include_directories(ledblink PRIVATE cmsis/cmsis_5/CMSIS/Core/Include)

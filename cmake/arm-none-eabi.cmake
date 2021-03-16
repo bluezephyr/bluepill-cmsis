@@ -44,8 +44,8 @@ function(cc_add_executable NAME)
     add_executable(
         ${ELF_FILE} EXCLUDE_FROM_ALL
         ${ARGN}
-        cmsis-st/Source/Templates/system_stm32f1xx.c
-        cmsis-st/Source/Templates/gcc/startup_stm32f102xb.s
+        cmsis/cmsis-st/Source/system_stm32f1xx.c
+        cmsis/cmsis-st/Source/gcc/startup_stm32f103xb.s
         ${LINKER_SCRIPT}
     )
     add_custom_target(${NAME} ALL DEPENDS ${HEX_FILE})
