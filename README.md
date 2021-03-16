@@ -20,8 +20,8 @@ in detail [here](https://arm-software.github.io/CMSIS_5/Core/html/using_pg.html)
 Basically, two sets of files are needed - one set of files from ARM and one
 set of files from the chip vendor. All files can be found in the repos below.
 
-* ARM common CMSIS files can be found [here](https://github.com/ARM-software/CMSIS_5)
-* The ST specific CMSIS files can be found [here](https://github.com/topics/cmsis-device)
+* [ARM common CMSIS files](https://github.com/ARM-software/CMSIS_5)
+* [ST specific CMSIS files](https://github.com/topics/cmsis-device)
 
 The relevant CMSIS files for the MCU have been copied to the `cmsis` folder for
 easy access.

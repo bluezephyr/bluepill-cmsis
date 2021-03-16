@@ -20,10 +20,41 @@ set(CMAKE_OBJDUMP ${ARM_OBJDUMP})
 set(SIZE ${ARM_SIZE})
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 
+# BitLoom specifics
+set(TOOLCHAIN_DIR ${CMAKE_CURRENT_LIST_DIR})
+set(BITLOOM_HAL ${TOOLCHAIN_DIR}/../bitloom_hal )
+
+# Store the dir of this file in a new variable - needed in the functions below
+set(BLUEPILL_CMAKE_DIR ${CMAKE_CURRENT_LIST_DIR})
+
 add_definitions(-DDEBUG -DSTM32F103xB)
 
 # Linker file generated from STM32CubeMX
-set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/stm32f103c8.ld)
+set(LINKER_SCRIPT ${BLUEPILL_CMAKE_DIR}/../stm32f103c8.ld)
+message(STATUS "LINKER_SCRIPT ${LINKER_SCRIPT}")
+
+# Compiler options
+# Note that the compiler options needs to be global in order to be valid for all
+# source files.
+# See https://gcc.gnu.org/onlinedocs/gcc/ARM-Options.html for details
+add_compile_options(
+    -mcpu=cortex-m3 -mthumb -mthumb-interwork
+    -ffunction-sections -fdata-sections -fno-common -fmessage-length=0
+)
+
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+    message(STATUS "Maximum optimization for speed")
+    add_compile_options(-Ofast)
+elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
+    message(STATUS "Maximum optimization for speed, debug info included")
+    add_compile_options(-Ofast -g)
+elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "MinSizeRel")
+    message(STATUS "Maximum optimization for size")
+    add_compile_options(-Os)
+else ()
+    message(STATUS "Minimal optimization, debug info included")
+    add_compile_options(-Og -g)
+endif ()
 
 # Cross-compile version of the add_executable command
 function(cc_add_executable NAME)
@@ -40,34 +71,17 @@ function(cc_add_executable NAME)
     add_executable(
         ${ELF_FILE} EXCLUDE_FROM_ALL
         ${ARGN}
-        cmsis/cmsis-st/Source/system_stm32f1xx.c
-        cmsis/cmsis-st/Source/gcc/startup_stm32f103xb.s
-        ${LINKER_SCRIPT}
+        ${BLUEPILL_CMAKE_DIR}/../cmsis/cmsis-st/Source/system_stm32f1xx.c
+        ${BLUEPILL_CMAKE_DIR}/../cmsis/cmsis-st/Source/gcc/startup_stm32f103xb.s
     )
+
+    target_include_directories(${ELF_FILE} PRIVATE ${BLUEPILL_CMAKE_DIR}/../cmsis/cmsis-st/Include)
+    target_include_directories(${ELF_FILE} PRIVATE ${BLUEPILL_CMAKE_DIR}/../cmsis/cmsis_5/CMSIS/Core/Include)
+
     add_custom_target(${NAME} ALL DEPENDS ${HEX_FILE})
 
-    # Compiler and linker options
+    # Linker options
     # See https://gcc.gnu.org/onlinedocs/gcc/ARM-Options.html for details
-    target_compile_options(
-        ${ELF_FILE} PRIVATE
-        -mcpu=cortex-m3 -mthumb -mthumb-interwork
-        -ffunction-sections -fdata-sections -fno-common -fmessage-length=0
-    )
-
-    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-        message(STATUS "Maximum optimization for speed")
-        target_compile_options(${ELF_FILE} PRIVATE -Ofast)
-    elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
-        message(STATUS "Maximum optimization for speed, debug info included")
-        target_compile_options(${ELF_FILE} PRIVATE -Ofast -g)
-    elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "MinSizeRel")
-        message(STATUS "Maximum optimization for size")
-        target_compile_options(${ELF_FILE} PRIVATE -Os)
-    else ()
-        message(STATUS "Minimal optimization, debug info included")
-        target_compile_options(${ELF_FILE} PRIVATE -Og -g)
-    endif ()
-
     target_link_options(
         ${ELF_FILE} PRIVATE
         -mcpu=cortex-m3
