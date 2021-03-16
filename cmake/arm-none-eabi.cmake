@@ -20,14 +20,10 @@ set(CMAKE_OBJDUMP ${ARM_OBJDUMP})
 set(SIZE ${ARM_SIZE})
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 
+add_definitions(-DDEBUG -DSTM32F103xB)
+
 # Linker file generated from STM32CubeMX
 set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/stm32f103c8.ld)
-
-# Print configuration
-message( STATUS "Toolchain CMakefile directory: ${TOOLCHAIN_DIR}")
-message( STATUS "MCU: ${MCU}" )
-message( STATUS "CPU Frequency: ${F_CPU} Hz" )
-message( STATUS "BAUD Rate: ${BAUD}" )
 
 # Cross-compile version of the add_executable command
 function(cc_add_executable NAME)

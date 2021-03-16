@@ -18,13 +18,13 @@ See below for some information about the Blue Pill board and its mounted MCU.
 The usage of CMSIS in embedded applications based on Cortex-M MCUs is described
 in detail [here](https://arm-software.github.io/CMSIS_5/Core/html/using_pg.html).
 Basically, two sets of files are needed - one set of files from ARM and one
-set of files from the chip vendor. The files are added as submodules to this
-repo.
+set of files from the chip vendor. All files can be found in the repos below.
 
 * ARM common CMSIS files can be found [here](https://github.com/ARM-software/CMSIS_5)
 * The ST specific CMSIS files can be found [here](https://github.com/topics/cmsis-device)
 
-To init the submodules, use `git submodule update --init`.
+The relevant CMSIS files for the MCU have been copied to the `cmsis` folder for
+easy access.
 
 ### Core CMSIS files
 
@@ -37,7 +37,7 @@ hardware are listed below.
     (`cmsis-st/Source/Templates/gcc/linker`) but there seems not to be a 
     file that matches the exact MCU.
 
-*   Startup file: `./cmsis-st/Source/Templates/gcc/startup_stm32f102xb.s`.
+*   Startup file: `./cmsis/cmsis-st/Source/gcc/startup_stm32f103xb.s`.
     This file is part of the ST specific CMSIS files. It is specific for
     the device (i.e., the specific MCU) as well as the compiler tool chain. The
     code in this file will be executed after a reset (`Reset_Handler`). The
@@ -45,7 +45,7 @@ hardware are listed below.
     function (see below). When the initialization is done, the `main` function
     will be called.
 
-*   System device file: `cmsis-st/Source/Templates/system_stm32f1xx.c`. This
+*   System device file: `cmsis/cmsis-st/Source/system_stm32f1xx.c`. This
     file is used to setup the microcontroller. The function is specified by
     CMSIS and implemented by the device vendor.
 
@@ -136,5 +136,4 @@ Step 3
 
 [RM0008](https://www.st.com/resource/en/reference_manual/cd00171190-stm32f101xx-stm32f102xx-stm32f103xx-stm32f105xx-and-stm32f107xx-advanced-arm-based-32-bit-mcus-stmicroelectronics.pdf)
 : Reference manual STM32F101xx, STM32F102xx, STM32F103xx, STM32F105xx and
-STM32F107xx advanced Arm®-based 32-bit MCUs
-
+STM32F107xx advanced Arm-based 32-bit MCUs
