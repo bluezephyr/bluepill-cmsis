@@ -91,11 +91,6 @@ file can be found in the `openocd` folder.
 
 No heap memory is used. The linker file is updated to reflect this.
 
-### GPIO
-
-The User LED mounted on the board and connected to PC13 is enabled as General
-Purpose output push-pull. Note that the LED is active low.
-
 ### System clocks
 
 From the data sheet [RM0008] section 7:
@@ -131,6 +126,14 @@ Step 2
 Step 3
 * Set System Clock Mux source to PLL
 
+### I2C
+
+If `i2c_init` is called, I2C1 is initialized. Note that the port configuration
+for the PINs also have to be done (application specific).
+
+The following configuration is used
+
+* I2C speed: standard mode 100 KHz
 
 ## References
 

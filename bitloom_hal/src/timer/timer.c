@@ -8,9 +8,9 @@
  *
  */
 
-#include "stm32f1xx.h"
-#include <config/timer_config.h>
+#include <stm32f1xx.h>
 #include <stdbool.h>
+#include <config/timer_config.h>
 
 volatile Tick_t timerTicks;
 
