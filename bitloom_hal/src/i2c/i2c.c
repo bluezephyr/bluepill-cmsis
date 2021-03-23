@@ -12,6 +12,14 @@
 #include <stm32f1xx.h>
 
 /*
+ * Local function declarations
+ */
+static inline void i2c_send_start (void);
+static inline void i2c_write_address (uint8_t address);
+static inline void i2c_write_byte (uint8_t byte);
+static inline void i2c_send_stop (void);
+
+/*
  * I2C master mode - Section 26.3.3 [RM0008]
  *
  * Master mode is selected as soon as the Start condition is generated on the bus with a
@@ -47,7 +55,7 @@ void i2c_init (void)
     // Controls the SCL clock in master mode.
     // Sm mode or SMBus: Thigh = CCR * TPCLK1, Tlow = CCR * TPCLK1
     // TPCLK1 for 36 MHz --> Period T = 28 ns
-    // 100 kHZ (duty cycle 0.5) --> CCR * 28 --> 5000 = 180 (0xB4)
+    // 100 kHZ (duty cycle 0.5) --> CCR * 28 = 5000 --> CCR = 180 (0xB4)
     MODIFY_REG(I2C1->CCR, (I2C_CCR_FS | I2C_CCR_DUTY | I2C_CCR_CCR), 0xB4);
 
     // Configure TRISE
@@ -59,59 +67,65 @@ void i2c_init (void)
     SET_BIT(I2C1->CR1, I2C_CR1_PE);
 }
 
-i2c_result_t i2c_start (void)
+enum i2c_request_t i2c_write(uint8_t address, uint8_t *buffer, uint8_t length,
+                             enum i2c_op_result_t *result)
 {
-    // Datasheet page 220
-//    TWCR |= (1 << TWINT) | (1 << TWEN) | (1 << TWSTA);
-//    i2c_wait_for_complete();
-//
-//    if (TW_STATUS != TW_START)
-//    {
-//        return i2c_operation_error;
-//    }
-//    return i2c_ok;
+    i2c_send_start();
+    i2c_write_address(address);
+    for (uint8_t i=0; i<length; i++)
+    {
+        i2c_write_byte(buffer[i]);
+    }
+
+    // Wait for BTF to be set
+    while(READ_BIT(I2C1->SR1, I2C_SR1_BTF) == 0) {}
+
+    i2c_send_stop();
+
+    return i2c_request_ok;
 }
 
-i2c_result_t i2c_restart (void)
+enum i2c_request_t i2c_write_register(uint8_t address, uint8_t reg, uint8_t *buffer,
+                                      uint8_t length, enum i2c_op_result_t *result)
 {
-//    TWCR |= (1 << TWINT) | (1 << TWEN) | (1 << TWSTA);
-//    i2c_wait_for_complete();
-//    if (TW_STATUS != TW_REP_START)
-//    {
-//        return i2c_operation_error;
-//    }
-//    return i2c_ok;
+    return i2c_request_ok;
 }
 
-void i2c_stop (void)
+enum i2c_request_t i2c_read_register(uint8_t address, uint8_t read_register, uint8_t *buffer,
+                                     uint8_t length, enum i2c_op_result_t *result)
 {
-//    TWCR |= (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
-//    while (!(TWCR & (1 << TWSTO)));
+    return i2c_request_ok;
 }
 
-i2c_result_t i2c_write_byte (uint8_t byte)
+
+static inline void i2c_send_start (void)
 {
-//    TWDR = byte;
-//    TWCR = (1 << TWINT) | (1 << TWEN);
-//    i2c_wait_for_complete();
-//
-//    switch (TW_STATUS)
-//    {
-//        case TW_MT_SLA_ACK:
-//        case TW_MT_DATA_ACK:
-//            return i2c_ack_received;
-//        case TW_MT_SLA_NACK:
-//        case TW_MT_DATA_NACK:
-//            return i2c_nack_received;
-//        case TW_MT_ARB_LOST:
-//            return i2c_arbitration_lost;
-//        default:
-//            return i2c_operation_error;
-//    }
+    SET_BIT(I2C1->CR1, I2C_CR1_START);
+
+    // Wait for the start condition to be set
+    while(READ_BIT(I2C1->SR1, I2C_SR1_SB) == 0) {}
 }
 
-uint8_t i2c_read_byte (uint8_t send_ack)
+static inline void i2c_write_address (uint8_t address)
 {
-    // Not implemented
-    //return i2c_operation_error;
+    MODIFY_REG(I2C1->DR, I2C_DR_DR, address);
+
+    // Wait for the ADDR bit to be set
+    while(READ_BIT(I2C1->SR1, I2C_SR1_ADDR) == 0) {}
+
+    // Read status register 2 to clear the ADDR bit
+    READ_REG(I2C1->SR2);
+}
+
+static inline void i2c_write_byte (uint8_t byte)
+{
+    MODIFY_REG(I2C1->DR, I2C_DR_DR, byte);
+
+    // Wait for the data register to be empty
+    while(READ_BIT(I2C1->SR1, I2C_SR1_TXE) == 0);
+}
+
+static inline void i2c_send_stop (void)
+{
+    SET_BIT(I2C1->CR1, I2C_CR1_STOP);
 }
