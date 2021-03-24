@@ -70,15 +70,38 @@ void i2c_init (void)
 enum i2c_request_t i2c_write(uint8_t address, uint8_t *buffer, uint8_t length,
                              enum i2c_op_result_t *result)
 {
+    uint8_t i;
+
+    // Check that I2C is not busy
+    while(READ_BIT(I2C1->SR2, I2C_SR2_BUSY));
+
     i2c_send_start();
     i2c_write_address(address);
-    for (uint8_t i=0; i<length; i++)
-    {
-        i2c_write_byte(buffer[i]);
-    }
 
-    // Wait for BTF to be set
-    while(READ_BIT(I2C1->SR1, I2C_SR1_BTF) == 0) {}
+    i = 0;
+    while(i < length)
+    {
+        // Wait for the data register to be empty
+        while(!READ_BIT(I2C1->SR1, I2C_SR1_TXE))
+        {
+            if(READ_BIT(I2C1->SR1, I2C_SR1_AF))
+            {
+                while(1);
+            }
+        }
+        MODIFY_REG(I2C1->DR, I2C_DR_DR, buffer[i++]);
+        if (READ_BIT(I2C1->SR1, I2C_SR1_BTF) && i<length)
+        {
+            MODIFY_REG(I2C1->DR, I2C_DR_DR, buffer[i++]);
+        }
+        while(!READ_BIT(I2C1->SR1, I2C_SR1_BTF))
+        {
+            if (READ_BIT(I2C1->SR1, I2C_SR1_AF))
+            {
+                while (1);
+            }
+        }
+    }
 
     i2c_send_stop();
 
@@ -88,6 +111,44 @@ enum i2c_request_t i2c_write(uint8_t address, uint8_t *buffer, uint8_t length,
 enum i2c_request_t i2c_write_register(uint8_t address, uint8_t reg, uint8_t *buffer,
                                       uint8_t length, enum i2c_op_result_t *result)
 {
+    uint8_t i;
+
+    // Check that I2C is not busy
+    while(READ_BIT(I2C1->SR2, I2C_SR2_BUSY));
+
+    i2c_send_start();
+    i2c_write_address(address);
+
+    // Wait for the data register to be empty
+    while(!READ_BIT(I2C1->SR1, I2C_SR1_TXE))
+    {
+        if(READ_BIT(I2C1->SR1, I2C_SR1_AF))
+        {
+            while(1);
+        }
+    }
+
+    // Write
+    MODIFY_REG(I2C1->DR, I2C_DR_DR, reg);
+
+    i = 0;
+    while(i < length)
+    {
+        if (READ_BIT(I2C1->SR1, I2C_SR1_BTF) && i<length)
+        {
+            MODIFY_REG(I2C1->DR, I2C_DR_DR, buffer[i++]);
+        }
+        while(!READ_BIT(I2C1->SR1, I2C_SR1_BTF))
+        {
+            if (READ_BIT(I2C1->SR1, I2C_SR1_AF))
+            {
+                while (1);
+            }
+        }
+    }
+
+    i2c_send_stop();
+
     return i2c_request_ok;
 }
 
@@ -103,7 +164,7 @@ static inline void i2c_send_start (void)
     SET_BIT(I2C1->CR1, I2C_CR1_START);
 
     // Wait for the start condition to be set
-    while(READ_BIT(I2C1->SR1, I2C_SR1_SB) == 0) {}
+    while(!READ_BIT(I2C1->SR1, I2C_SR1_SB));
 }
 
 static inline void i2c_write_address (uint8_t address)
@@ -111,18 +172,18 @@ static inline void i2c_write_address (uint8_t address)
     MODIFY_REG(I2C1->DR, I2C_DR_DR, address);
 
     // Wait for the ADDR bit to be set
-    while(READ_BIT(I2C1->SR1, I2C_SR1_ADDR) == 0) {}
+    while(!READ_BIT(I2C1->SR1, I2C_SR1_ADDR));
 
     // Read status register 2 to clear the ADDR bit
-    READ_REG(I2C1->SR2);
+    (void)READ_REG(I2C1->SR2);
 }
 
 static inline void i2c_write_byte (uint8_t byte)
 {
     MODIFY_REG(I2C1->DR, I2C_DR_DR, byte);
 
-    // Wait for the data register to be empty
-    while(READ_BIT(I2C1->SR1, I2C_SR1_TXE) == 0);
+    // Wait for BTF to be set
+    while(!READ_BIT(I2C1->SR1, I2C_SR1_BTF));
 }
 
 static inline void i2c_send_stop (void)
