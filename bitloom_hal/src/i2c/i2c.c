@@ -67,10 +67,10 @@ void i2c_init (void)
     SET_BIT(I2C1->CR1, I2C_CR1_PE);
 }
 
-enum i2c_request_t i2c_write(uint8_t address, uint8_t *buffer, uint8_t length,
+enum i2c_request_t i2c_write(uint8_t address, uint8_t *buffer, uint16_t length,
                              enum i2c_op_result_t *result)
 {
-    uint8_t i;
+    uint16_t i;
 
     // Check that I2C is not busy
     while(READ_BIT(I2C1->SR2, I2C_SR2_BUSY));
@@ -109,9 +109,9 @@ enum i2c_request_t i2c_write(uint8_t address, uint8_t *buffer, uint8_t length,
 }
 
 enum i2c_request_t i2c_write_register(uint8_t address, uint8_t reg, uint8_t *buffer,
-                                      uint8_t length, enum i2c_op_result_t *result)
+                                      uint16_t length, enum i2c_op_result_t *result)
 {
-    uint8_t i;
+    uint16_t i;
 
     // Check that I2C is not busy
     while(READ_BIT(I2C1->SR2, I2C_SR2_BUSY));
@@ -153,7 +153,7 @@ enum i2c_request_t i2c_write_register(uint8_t address, uint8_t reg, uint8_t *buf
 }
 
 enum i2c_request_t i2c_read_register(uint8_t address, uint8_t read_register, uint8_t *buffer,
-                                     uint8_t length, enum i2c_op_result_t *result)
+                                     uint16_t length, enum i2c_op_result_t *result)
 {
     return i2c_request_ok;
 }
