@@ -1,5 +1,5 @@
 /*
- * Implementation of the I2C module for the Bluepill
+ * Implementation of the I2C module for the Bluepill.
  *
  * Copyright (c) 2021. BlueZephyr
  *
@@ -67,8 +67,8 @@ void i2c_init (void)
     SET_BIT(I2C1->CR1, I2C_CR1_PE);
 }
 
-enum i2c_request_t i2c_write(uint8_t address, uint8_t *buffer, uint16_t length,
-                             enum i2c_op_result_t *result)
+enum i2c_request_t
+i2c_masterTransmit(uint8_t address, const uint8_t *buffer, uint16_t length, enum i2c_op_result_t *result)
 {
     uint16_t i;
 
@@ -105,11 +105,13 @@ enum i2c_request_t i2c_write(uint8_t address, uint8_t *buffer, uint16_t length,
 
     i2c_send_stop();
 
+    *result = i2c_operation_ok;
     return i2c_request_ok;
 }
 
-enum i2c_request_t i2c_write_register(uint8_t address, uint8_t reg, uint8_t *buffer,
-                                      uint16_t length, enum i2c_op_result_t *result)
+enum i2c_request_t
+i2c_masterTransmitRegister(uint8_t address, uint8_t reg, const uint8_t *buffer,
+                           uint16_t length, enum i2c_op_result_t *result)
 {
     uint16_t i;
 
@@ -149,6 +151,7 @@ enum i2c_request_t i2c_write_register(uint8_t address, uint8_t reg, uint8_t *buf
 
     i2c_send_stop();
 
+    *result = i2c_operation_ok;
     return i2c_request_ok;
 }
 
